@@ -1,0 +1,15 @@
+table, td, th
+{
+border:0px solid gray;
+padding-bottom: 5px;
+padding-top: 5px;
+padding-right: 15px;
+padding-left: 15px;
+}
+.full {
+  background: url(/images/trianglify.svg) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html class="full" lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name=viewport content="width=device-width, initial-scale=1" />
+      <link rel="stylesheet" href="css/main.css">
+      <link rel="stylesheet" href="css/setup.css">
+      <script src="js/jquery-1.8.3.min.js"></script>
+      <title>Thermometer Setup</title>
+   </head>
+   <body>
+      <div id="myModal" class="modal">
+         <div class="modal-content">
+            <div id="header" class="modal-header">
+               <span class="close">&times;</span>
+               <h2>Values Submitted</h2>
+            </div>
+            <div id="modal-body" class="modal-body">
+            </div>
+            <div id="footer" class="modal-footer">
+               <h3></h3>
+            </div>
+         </div>
+      </div>
+      <script type="text/javascript">
+
+         Array.prototype.removeDuplicates = function () {
+             return this.filter(function (item, index, self) {
+                 return self.indexOf(item) == index;
+             });
+         };
+
+         var modal = document.getElementById('myModal');
+         var btn = document.getElementById("myBtn");
+         
+         // Get the <span> element that closes the modal
+         var span = document.getElementsByClassName("close")[0];
+         
+         doIt = function() {
+            let color=document.getElementById("color").value;
+            let label=document.getElementById("label").value;
+            configure("/cgi-bin/configure.cgi", color, label);
+         }
+         
+         // When the user clicks on <span> (x), close the modal
+         span.onclick = function() { modal.style.display = "none"; }
+         
+         // When the user clicks anywhere outside of the modal, close it
+         window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
+
+         function configure( url, color, label ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     data: {
+                        "color": color,
+                        "label": label,
+                     },
+                     success: result => {
+                        let complement = (0xffffff ^ ( parseInt( color.slice(1), 16 ))).toString(16);
+                        modal.style.display = "block";
+                        document.getElementById("modal-body").style.backgroundColor = color;
+                        let content="<h4><p style=color:#" + complement + ">Graph Color:<br>Graph Label: <i>" +label+ "</i></p></h4>";
+                        document.getElementById("modal-body").innerHTML = content;
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       modal.style.display = "block";
+                       document.getElementById("modal-body").innerHTML = errorThrown;
+                     }
+                   });
+         }
+         
+         function fetch(field ) {
+                   return $.ajax({
+                     url: field,
+                     type: 'GET',
+                     success: result => {
+                        document.getElementById(field).value = result.replace(/^\s+|\s+$/g, '');
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+                   });
+         }
+         
+         function fetchPeers(url ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     success: result => {
+                        let hostPort=result.split("\n").map( hP => hP && `<li><a href="http://${hP.split('|')[0]}/setup.html">${hP.split('|')[1]}</a>` );
+                        if ( hostPort.length > 1 ) {
+                           document.getElementById('peers').innerHTML = 'Configure Peers' + hostPort.join('');
+                        }
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+                   });
+         }
+          $(function() { fetch('label'); fetch('color'); fetchPeers('hosts.txt'); });
+            
+      </script>
+      <title>Thermometer Setup</title>
+      <div style="background: rgba(247,247,247,0.6); width: 90%; text-align: left; margin: 0 auto">
+         <form  method="post" enctype="text/plain">
+            <center>
+            <table>
+               <tr>
+                  <th colspan=2> Thermometer Setup </th>
+               </tr>
+               <tr>
+                  <td><label>Graph Label</label></td>
+                  <td><input id="label" name="label" type="text" /></td>
+               </tr>
+               <tr>
+                  <td><label>Graph Color</label></td>
+                  <td><input id="color" type="color" name="color"></td>
+               </tr>
+               <tr>
+                  <th colspan=2>
+                     <input type="button" value="Submit" onclick="doIt()"/>
+                  </th>
+               </tr>
+               <tr>
+                  <td id="peers" colspan=2 style="text-align:left"> </td>
+               </tr>
+               <tr>
+                  <td colspan=2 style="text-align:center">
+                     <br>
+                     <a href="javascript:history.back()">Back</a>
+                  </td>
+               </tr>
+            </table>
+         </form>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+      </div>
+   </body>
+</html>
