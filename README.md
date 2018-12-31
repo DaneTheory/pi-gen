@@ -1,6 +1,5 @@
 # pi-gen
 
-
 _Tool used to create the Buzbee Raspbian images_
 
 Based on modifications from the berrylan.app
