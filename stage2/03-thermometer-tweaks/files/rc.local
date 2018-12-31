@@ -1,0 +1,71 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Print the IP address
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+# disable htmi
+#/usr/bin/tvservice -o
+
+# Set the Pi Zero ACT LED trigger to 'none'.
+echo none | sudo tee /sys/class/leds/led0/trigger
+
+# Turn off the Pi Zero ACT LED.
+echo 1 | sudo tee /sys/class/leds/led0/brightness
+
+BASE=/var/tmp/readings/
+
+mkdir -p $BASE/tmp
+mkdir -p $BASE/probes
+mkdir -p $BASE/scratch
+
+touch $BASE/access.txt
+chmod a+rw $BASE/access.txt
+
+chmod -R a+rwx $BASE
+
+# allow python to bind to priv ports
+#setcap cap_net_bind_service=+ep /usr/bin/python2.7
+
+if [ ! -d /boot/config ]; then
+    mkdir /boot/config
+fi
+
+TH="/boot/config/temperature-history.txt"
+if [ -f "$TH" ]; then
+ cp $TH /var/www/
+fi
+
+LABEL="/boot/config/label"
+COLOR="/boot/config/color"
+
+if [ ! -f $LABEL ]; then
+   id=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
+   id=$( echo $id | tail -c 9 ) # use this for default id
+   color=$( echo $id | tail -c 7 ) # use this for default color
+
+   echo $id >  $LABEL
+   echo "#$color" > $COLOR
+fi
+
+cp $LABEL /var/www/html/
+cp $COLOR /var/www/html/
+
+chmod a+rw /var/www/html/color
+chmod a+rw /var/www/html/label
+
+exit 0
+
