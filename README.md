@@ -1,6 +1,18 @@
 # pi-gen
 
-_Tool used to create the raspberrypi.org Raspbian images_
+
+_Tool used to create the Buzbee Raspbian images_
+
+Based on modifications from the berrylan.app
+
+This tool is based on the pi-gen tool of the raspberrypi.org Raspbian images. It only adds http://repository.nymea.io to the repositories and preinstalls nymea-networkmanager in the image to allow WiFi configuration via BerryLan and adds changes for utilization of a ds18b20 temperature sensor
+
+Utilizes read-only root filesystem mechanism from:
+
+http://wiki.psuter.ch/doku.php?id=solve_raspbian_sd_card_corruption_issues_with_read-only_mounted_root_partition
+
+
+nymea-networkmanager can be found at https://github.com/guh/nymea-networkmanager
 
 
 ## Dependencies
