@@ -24,12 +24,13 @@ install -v files/js/jquery.flot.selection.js  "${ROOTFS_DIR}/var/www/html/js/"
 
 install -v files/html/favicon.ico             "${ROOTFS_DIR}/var/www/html/"
 install -v files/html/index.html              "${ROOTFS_DIR}/var/www/html/"
+install -v files/html/temperature.html        "${ROOTFS_DIR}/var/www/html/"
 install -v files/html/setup.html              "${ROOTFS_DIR}/var/www/html/"
 
 install -v files/rc.local                     "${ROOTFS_DIR}/etc/"
-install -v files/http.service                 "${ROOTFS_DIR}/etc/avahi/services/http.service"
+install -v files/http.service                 "${ROOTFS_DIR}/etc/avahi/services/"
 install -v files/saveNetwork                  "${ROOTFS_DIR}/etc/network/if-up.d/"
-install -v files/overlayRoot.sh               "${ROOTFS_DIR}/sbin/overlayRoot.sh"
+install -v files/overlayRoot.sh               "${ROOTFS_DIR}/sbin/"
 
 if ! grep -q overlayRoot.sh ${ROOTFS_DIR}/boot/cmdline.txt; then
     sed -i 's/$/ init=\/sbin\/overlayRoot.sh/' ${ROOTFS_DIR}/boot/cmdline.txt
