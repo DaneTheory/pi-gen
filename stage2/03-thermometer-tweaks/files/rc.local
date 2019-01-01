@@ -41,7 +41,7 @@ chmod -R a+rwx $BASE
 #setcap cap_net_bind_service=+ep /usr/bin/python2.7
 
 if [ ! -d /boot/config ]; then
-    mkdir /boot/config
+    mkdir -p /boot/config/network
 fi
 
 TH="/boot/config/temperature-history.txt"
