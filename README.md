@@ -13,6 +13,7 @@ http://wiki.psuter.ch/doku.php?id=solve_raspbian_sd_card_corruption_issues_with_
 
 nymea-networkmanager can be found at https://github.com/guh/nymea-networkmanager
 
+![Screenshot](ScreenShot.png)
 
 ## Dependencies
 
