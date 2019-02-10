@@ -135,7 +135,6 @@ if [ "$(ls -A $NETCONF 2>/dev/null)" ]; then
    echo "Updated network configuration files with $(ls /mnt/newroot/etc/NetworkManager/system-connections/)"
 else
    echo "No network configuration files to copy in $NETCONF"
-   echo $(df)
 fi
 
 umount /mnt/newroot/boot
