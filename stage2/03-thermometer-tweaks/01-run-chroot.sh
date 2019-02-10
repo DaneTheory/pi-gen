@@ -16,3 +16,10 @@ fi
 touch /var/www/temperature-history.txt
 
 echo "root:strawberry" | chpasswd
+
+echo "set incsearch!" >> /home/pi/.vimrc
+echo "syntax on" >> /home/pi/.vimrc
+
+
+sed -i 's!^ExecStart=.*!ExecStart=/usr/bin/nymea-networkmanager.sh -d!' /etc/systemd/system/multi-user.target.wants/nymea-networkmanager.service
+

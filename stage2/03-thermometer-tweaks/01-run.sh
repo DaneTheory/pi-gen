@@ -31,9 +31,14 @@ install -v files/rc.local                     "${ROOTFS_DIR}/etc/"
 install -v files/http.service                 "${ROOTFS_DIR}/etc/avahi/services/"
 install -v files/saveNetwork                  "${ROOTFS_DIR}/etc/network/if-up.d/"
 install -v files/overlayRoot.sh               "${ROOTFS_DIR}/sbin/"
+install -v files/nymea-networkmanager.sh      "${ROOTFS_DIR}/usr/bin/"
 
 if ! grep -q overlayRoot.sh ${ROOTFS_DIR}/boot/cmdline.txt; then
     sed -i 's/$/ init=\/sbin\/overlayRoot.sh/' ${ROOTFS_DIR}/boot/cmdline.txt
+fi
+
+if ! grep -q www-data ${ROOTFS_DIR}/etc/lighttpd/lighttpd.conf; then
+    sed -i 's/www-data/root/'  ${ROOTFS_DIR}/etc/lighttpd/lighttpd.conf
 fi
 
 sed -i 's/BT WLAN setup/RaspberryPi/' ${ROOTFS_DIR}/etc/nymea/nymea-networkmanager.conf
