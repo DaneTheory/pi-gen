@@ -12,15 +12,32 @@ scratchDirectory=/tmp/
 #######################################################################################################
 getReading()
 {
-   if [ "$3" -eq $maxAttempts ]
+   name=$(cat /sys/bus/w1/devices/28*/name 2>/dev/null)
+
+   # if we don't have a sensor
+   if [ $? -eq 1 ]
    then
-      # give up and use last temperature (assumption that this sensor has worked before so the file exists)
-      rawData=$(cat $scratchDirectory/$2.txt)
-      echo $2 max errors at $(date +"%a %b %d %H:%M:%S") >> $scratchDirectory/temperature_errors.txt
+      # base the name on the CPU serial number
+      id=$(tail -1 /proc/cpuinfo | awk '{print $3}')
+      name="CPU-"${id:(-8)}
+      # use the CPU temperature
+      rawData="crc=0 YES t=$(cat /sys/class/thermal/thermal_zone0/temp | awk '{printf int($1/1000) * 1000}')"
    else
-      rawData=$(cat /sys/bus/w1/devices/*/w1_slave )
+      if [ "$1" -eq $maxAttempts ]
+      then
+         if [ -e $scratchDirectory/probe.txt ]
+         then
+            # give up and use last temperature. This sensor has worked before
+            rawData=$(cat $scratchDirectory/probe.txt)
+         else
+            # This sensor has not worked before. Return a temperature of 0
+            rawData="crc=0 YES t=-17777.7777777777777777"
+         fi
+         echo probe max errors at $(date +"%a %b %d %H:%M:%S") >> $scratchDirectory/temperature_errors.txt
+      else
+         rawData=$(cat /sys/bus/w1/devices/28*/w1_slave 2>/dev/null )
+      fi
    fi
-   name=$(cat /sys/bus/w1/devices/*/name)
 
    echo $rawData | grep YES   >/dev/null; crc=$?
    echo $rawData | grep 85000 >/dev/null; err=$?
@@ -29,38 +46,29 @@ getReading()
    temperature=$(echo $rawData | awk -F '=' '{ print ( $3/1000) * ( 9.0/5.0 ) + 32 ;}' ;)
 }
 #######################################################################################################
-getTemp()
+getTemperature()
 {
    attempts=0
 
-   getReading $1 $2 $attempts
+   getReading $attempts
 
-   # note the check for 31.8884 - getting this incorrect reading from one sensor occassionally.
-   # note that this will prevent a valid reading of exactly that temperature from any sensor :-(
-   # note that the last floating comparison is an error - i.e. syntax error
-   while [ $crc -eq 1 ] || [ $err -eq 0 ] # || [ $temperature -eq 31.8884 ]
+   while [ $crc -eq 1 ] || [ $err -eq 0 ]
    do
       attempts=$(($attempts+1))
       sleep 1
-      getReading $1 $2 $attempts
+      getReading $attempts
    done
 
-   echo $rawData > $scratchDirectory/$2.txt
+   echo $rawData > $scratchDirectory/probe.txt
 
-   return $attempts
-}
-#######################################################################################################
-readSensors()
-{
-   getTemp $probe probe ; probeAttempts=$? ; probeTemperature=$( printf "%.4f" $temperature )
+   probeTemperature=$( printf "%.4f" $temperature )
 
    label=$(cat /var/www/html/label)
    color=$(cat /var/www/html/color)
-
 }
 #######################################################################################################
 
-readSensors;
+getTemperature
 
 echo $(echo $(($(date +%s%N)/1000000)))\,$probeTemperature,$color,$label,$name>>/var/www/temperature-history.txt
 
