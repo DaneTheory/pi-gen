@@ -21,5 +21,12 @@ echo "set incsearch!" >> /home/pi/.vimrc
 echo "syntax on" >> /home/pi/.vimrc
 
 
-sed -i 's!^ExecStart=.*!ExecStart=/usr/bin/nymea-networkmanager.sh -d!' /etc/systemd/system/multi-user.target.wants/nymea-networkmanager.service
+sed -i 's!^ExecStart=.*!ExecStart=/usr/bin/nymea-networkmanager.sh -d!' /lib/systemd/system/nymea-networkmanager.service
+
+ln -sf /var/www/html/css          /var/www/html/setup/css
+ln -sf /var/www/html/hosts.txt    /var/www/html/setup/hosts.txt
+ln -sf /var/www/html/label        /var/www/html/setup/label
+ln -sf /var/www/html/color        /var/www/html/setup/color
+ln -sf /var/www/html/js           /var/www/html/setup/js
+ln -sf /var/www/html/images       /var/www/html/setup/images
 

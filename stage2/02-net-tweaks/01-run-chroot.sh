@@ -1,5 +1,11 @@
 #!/bin/bash -e
 
 systemctl enable ssh
-systemctl disable dhcpcd5
+
+systemctl is-enabled dhcpcd5
+status=$?
+
+echo status is $status
+
+#systemctl disable dhcpcd5
 
