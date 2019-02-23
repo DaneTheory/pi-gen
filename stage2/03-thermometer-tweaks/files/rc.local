@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 # rc.local
 #
@@ -67,5 +67,31 @@ cp $COLOR /var/www/html/
 chmod a+rw /var/www/html/color
 chmod a+rw /var/www/html/label
 
-exit 0
+UP="/boot/config/update.sh"
+CMDLINE="/boot/cmdline.txt"
+ROMODE="init=/sbin/overlayRoot.sh"
+RWMODE="init=/sbin/init"
 
+grep $ROMODE $CMDLINE >/dev/null 2>&1
+
+if [ $? -eq 0 ]; then # we are in ro mode
+   if [ -f "$UP" ]; then
+      echo "Found $UP, rebooting to do the update"
+      sed -i "s+$ROMODE+$RWMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+else # we are in rw mode
+   if [ -f "$UP" ]; then
+      echo "Found $UP, execute it"
+      sh $UP >/boot/config/update.log 2>&1
+      mv $UP $UP.executed
+      sed -i "s+$RWMODE+$ROMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+fi
+
+exit 0

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html class="full" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name=viewport content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>Temperature probe</title>
+
+    <script src="js/jquery-1.8.3.min.js"></script>
+    <script src="js/jquery.flot.js"></script>
+    <script src="js/jquery.flot.selection.js"></script>
+
+    <script type="text/javascript">
+
+      function fetchName(url ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     success: result => {
+                        myLabel=result;
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+                   });
+      }
+
+       String.prototype.replaceAll = function(search, replacement) {
+           var target = this;
+           return target.split(search).join(replacement);
+       };
+
+       function getSelect(selectObject) {
+           days = selectObject.value;  
+           createCookie('days', days, 100);
+           $('#graphLabel').html( "<h2>Please wait...</h2>" );
+
+           clearTimeout( myTimer );
+           reloadGraph();
+       }
+
+	let createCookie = function(name, value, days) {
+	    let expires;
+	    if (days) {
+		let date = new Date();
+		date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+		expires = "; expires=" + date.toGMTString();
+	    }
+	    else {
+		expires = "";
+	    }
+	    document.cookie = name + "=" + value + expires + "; path=/";
+	}
+
+	function getCookie(c_name) {
+	    if (document.cookie.length > 0) {
+		c_start = document.cookie.indexOf(c_name + "=");
+		if (c_start != -1) {
+		    c_start = c_start + c_name.length + 1;
+		    c_end = document.cookie.indexOf(";", c_start);
+		    if (c_end == -1) {
+			c_end = document.cookie.length;
+		    }
+		    return unescape(document.cookie.substring(c_start, c_end));
+		}
+	    }
+	    return "";
+	}
+
+       let exclude=getCookie('exclude');
+       let days=getCookie('days');
+       if ( ! days ) days = 1;
+       let reloadGraph;
+       let myTimer;
+
+      $(function() {
+        const day = $('#day');
+        const dayPlot = plot(day, 7200000*days*((days>1) ? 1.0 : 1), date => days==1 ? date.toTimeString().slice(0, 5) : date.toDateString().slice(0, 4) + date.toTimeString().slice(0, 5),'xy');
+
+        document.getElementById('selectdays').value = days;
+        // **********************************************************************
+        // called once, then setData thereafter
+        // xaxis and yxais gets called when chart regnerated
+        // **********************************************************************
+
+        function plot(graph, tickSize, formatDate, selectionMode = undefined) {
+          return $.plot(graph, [[0, 0]], {
+            grid: {
+              color: 'rgba(0,0,0,34)',
+              backgroundColor: {
+                colors: ['rgba(127,127,127,34)', '#a72647',],
+              },
+            },
+            selection: { mode: selectionMode },
+            xaxis: {
+              ticks: axis => {
+                const ticks = [];
+                // i is milliseconds originating from data
+                for (let i = axis.max; i > axis.min; i -= tickSize) {
+                  ticks.push([i, formatDate(new Date(i))]);
+                }
+                if (ticks.length == 1) {
+                  // special case typically for zoomed into a single minute
+                  ticks.push([axis.min, formatDate(new Date(axis.min))]);
+                }
+                return ticks;
+              },
+            },
+            yaxis: {
+              tickDecimals: 0,
+            },
+            legend: {
+               backgroundColor: "#a72647",
+               backgroundOpacity: 0.05,
+               margin :0,
+               noColumns: 3,
+             //  labelFormatter: function(label, series) { return '' + label + ''; }
+             }
+          });
+        }
+
+        function fetch(url, plot ) {
+          return $.ajax({
+            url: url,
+            type: 'POST',
+            success: result => {
+              plot.setData(result);
+              plot.setupGrid();
+              plot.draw();
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) { 
+              let len =  XMLHttpRequest.responseText.length;
+              let pos = errorThrown + " " ;
+              pos = pos.replace(/\D/g,'');
+              let partial = XMLHttpRequest.responseText.substr( pos-20, 40 );
+
+              //console.log("Status: " + textStatus + " |" + pos + " |" + errorThrown + " " + " Length "  + len + " " +  XMLHttpRequest.responseText); 
+              console.log( errorThrown +  partial.length + "|" + partial + "| " ); 
+              $('#graphLabel').html( "<h2>Error Fetching Data</h2>");
+            } 
+          });
+        }
+
+        (function() {
+          fetch('/cgi-bin/getCurrent.cgi?days='+days+'&exclude='+exclude, dayPlot ).then(res => {
+             $('#exclude').html( '' );
+             $('#graphLabel').html( "<h2>"+((days > 1)?("Last " +days+" Days") : "Last 24 Hours" ) + res[res.length-1].debug + "</h2>" );
+             if ( res.length > 2 ) { // 2 since we always have a blank entry on the end
+             res.forEach(function(element) {
+                try {
+                   const label=element.excludelabel.split(':')[0];
+
+                   let checkbox = document.createElement('input');
+                   checkbox.type = "checkbox";
+                   checkbox.value = label;
+                   checkbox.checked = ! element.excluded;
+
+                   checkbox.onchange = ( ) => {  
+                      if ( checkbox.checked ) { // checked, then don't exclude
+                         exclude=exclude.replaceAll( checkbox.value,"");
+                      } else { // not checked, add to the exclude list
+                         exclude+=checkbox.value;
+                      }
+                      createCookie('exclude', exclude, 100);
+                      $('#graphLabel').html( "<h2>Please wait...</h2>" );
+                      clearTimeout( myTimer );
+                      reloadGraph();
+                   };
+                   let clabel = document.createElement('label')
+                   clabel.style.color = element.color;
+                   clabel.appendChild(document.createTextNode(label+' '));
+
+                   var elemDiv = document.createElement('div');
+                   elemDiv.style.cssText = 'white-space:nowrap; display:inline-block; border: 1px solid #dddddd';
+                   document.getElementById( 'exclude' ).appendChild(elemDiv);
+
+                   elemDiv.appendChild( checkbox);
+                   elemDiv.appendChild( clabel);
+
+              } catch (e) {}
+            });
+            }
+          });
+          reloadGraph = arguments.callee;
+          myTimer = setTimeout( reloadGraph, 60 * 1000 );
+        })();
+
+        function zoom(plot, from, to, yfrom, yto) {
+          let axisOptions = plot.getXAxes()[0].options;
+          axisOptions.min = from;
+          axisOptions.max = to;
+          plot.clearSelection();
+          plot.setupGrid();
+          plot.draw();
+
+          axisOptions = plot.getYAxes()[0].options;
+          axisOptions.min = yfrom;
+          axisOptions.max = yto;
+          plot.clearSelection();
+          plot.setupGrid();
+          plot.draw();
+        }
+
+        day.on('plotselected', (e, ranges) => {
+          zoom(dayPlot, ranges.xaxis.from, ranges.xaxis.to, ranges.yaxis.from, ranges.yaxis.to);
+        });
+
+        $('#resetZoom').on('click', () => {
+          zoom(dayPlot, null, null, null, null);
+        });
+      });
+    </script>
+  </head>
+  <div style="height:2500px; overflow:hidden;">
+    <div style="background: rgba(247,247,247,0.6); width: 740px; margin: 0 auto; padding: 20px; text-align:left;">
+<div id="absPos" style="padding: 0px; position: absolute; ">
+<a href="/setup/setup.html"><img src="/images/smallGear.png"/></a>
+</div>
+
+       <div style="text-align:center;" id="graphLabel">
+         <h2>Please wait...</h2>
+       </div>
+
+      <div id="day" style="width: 720px; height: 480px;" class="graph-placeholder "> </div>
+        <div style="text-align:center; background-color: lightgray ">
+           <button id="resetZoom">Reset zoom</button>
+           <div id="exclude"></div>
+           <div id="days"></div>
+       <hr>
+       <div style=" id="dayLabel" >
+          <form class="form-inline" >
+          Display
+          <select id="selectdays" name="select" onChange="getSelect(this)">
+            <option value="1" selected>1</option> 
+            <option value="2" >2</option>
+            <option value="3" >3</option>
+            <option value="4" >4</option>
+            <option value="5" >5</option>
+            <option value="6" >6</option>
+            <option value="7" >7</option>
+          </select> Days 
+          </form>
+       </div>
+       </div>
+    </div>
+    </div>
+  </body>
+</html>
+
