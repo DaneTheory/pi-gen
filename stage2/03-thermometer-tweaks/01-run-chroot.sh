@@ -1,10 +1,14 @@
 #!/bin/bash -e
 
+echo 1 >/boot/config/model.txt
+
+ln -sf /boot/config/model.txt /var/www/html/model
 ln -sf /etc/lighttpd/conf-available/10-cgi.conf /etc/lighttpd/conf-enabled/10-cgi.conf
 ln -sf /usr/lib/cgi-bin/ /var/www/html/cgi-bin
 
 echo "* * * * * /var/www/html/cgi-bin/getCurrent.cgi" > /tmp/crontab
 echo "* * * * * /var/www/html/cgi-bin/readtemp-cron.sh" >> /tmp/crontab
+echo "0 * * * * /var/www/html/cgi-bin/checkUpdates.sh" >> /tmp/crontab
 echo "*/5 * * * * cp /var/www/temperature-history.txt /boot/config/temperature-history.txt" >> /tmp/crontab
 
 cat /tmp/crontab | crontab -u root -

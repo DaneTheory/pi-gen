@@ -13,6 +13,7 @@ install -v files/cgi-bin/getCurrent.cgi       "${ROOTFS_DIR}/usr/lib/cgi-bin/"
 install -v files/cgi-bin/getDayTemp.cgi       "${ROOTFS_DIR}/usr/lib/cgi-bin/"
 install -v files/cgi-bin/readtemp-cron.sh     "${ROOTFS_DIR}/usr/lib/cgi-bin/"
 install -v files/cgi-bin/urlDecode.sh         "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/checkUpdates.sh      "${ROOTFS_DIR}/usr/lib/cgi-bin/"
 
 install -v files/css/main.css                 "${ROOTFS_DIR}/var/www/html/css/"
 install -v files/css/setup.css                "${ROOTFS_DIR}/var/www/html/css/"
@@ -26,10 +27,10 @@ install -v files/js/jquery.flot.selection.js  "${ROOTFS_DIR}/var/www/html/js/"
 
 install -v files/html/favicon.ico             "${ROOTFS_DIR}/var/www/html/"
 install -v files/html/index.html              "${ROOTFS_DIR}/var/www/html/"
+install -v files/html/version                 "${ROOTFS_DIR}/var/www/html/"
 
 install -v files/html/setup.html              "${ROOTFS_DIR}/var/www/html/setup/"
 install -v files/html/hash.sh                 "${ROOTFS_DIR}/var/www/html/setup/"
-install -v files/html/version.txt             "${ROOTFS_DIR}/var/www/html/setup/"
 install -v files/lighttpd.conf                "${ROOTFS_DIR}/etc/lighttpd/lighttpd.conf"
 install -v files/lighttpd-htdigest.user       "${ROOTFS_DIR}/etc/lighttpd/.htpasswd/lighttpd-htdigest.user"
 
