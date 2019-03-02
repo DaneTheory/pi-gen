@@ -13,6 +13,19 @@
 
     <script type="text/javascript">
 
+      function fetchHTML(field ) {
+                   return $.ajax({
+                     url: field,
+                     type: 'GET',
+                     success: result => {
+                        document.getElementById(field).innerHTML = result.replace(/^\s+|\s+$/g, '');
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+                   });
+      }
+
       function fetchName(url ) {
                    return $.ajax({
                      url: url,
@@ -210,13 +223,20 @@
           zoom(dayPlot, null, null, null, null);
         });
       });
+      $(function() { fetchHTML('version');  })
+      $(function() { fetchHTML('model');  })
     </script>
   </head>
   <div style="height:2500px; overflow:hidden;">
     <div style="background: rgba(247,247,247,0.6); width: 740px; margin: 0 auto; padding: 20px; text-align:left;">
-<div id="absPos" style="padding: 0px; position: absolute; ">
-<a href="/setup/setup.html"><img src="/images/smallGear.png"/></a>
-</div>
+  <div id="absPos" style="float:left; ">
+     <a href="/setup/setup.html"><img src="/images/smallGear.png"/></a>
+  </div>
+
+  <div id="absPos1" style="float: right;">
+     <label name="version" id="version" style="font-size:10px;" >Version</label> <label name="model" id="model" style="font-size:10px;" >model</label>
+  </div>
+
 
        <div style="text-align:center;" id="graphLabel">
          <h2>Please wait...</h2>
