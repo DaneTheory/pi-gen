@@ -59,6 +59,11 @@ if [ ! -f $LABEL ]; then
 
    echo $id >  $LABEL
    echo "#$color" > $COLOR
+
+   name=raspberryPi-$(cat $LABEL)
+   echo $name >/etc/hostname
+   echo 127.0.0.1	$name >> /etc/hosts
+   hostname $name
 fi
 
 cp $LABEL /var/www/html/
