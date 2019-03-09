@@ -73,6 +73,7 @@ chmod a+rw /var/www/html/color
 chmod a+rw /var/www/html/label
 
 UP="/boot/config/update.sh"
+LUP="/boot/config/updateLocal.sh"
 CMDLINE="/boot/cmdline.txt"
 ROMODE="init=/sbin/overlayRoot.sh"
 RWMODE="init=/sbin/init"
@@ -87,11 +88,27 @@ if [ $? -eq 0 ]; then # we are in ro mode
       sync
       /sbin/reboot
    fi
+   if [ -f "$LUP" ]; then
+      echo "Found $LUP, rebooting to do the update"
+      sed -i "s+$ROMODE+$RWMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
 else # we are in rw mode
    if [ -f "$UP" ]; then
       echo "Found $UP, execute it"
       sh $UP >/boot/config/update.log 2>&1
       mv $UP $UP.executed
+      sed -i "s+$RWMODE+$ROMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+   if [ -f "$LUP" ]; then
+      echo "Found $LUP, execute it"
+      sh $LUP >/boot/config/updateLocal.log 2>&1
+      mv $LUP $LUP.executed
       sed -i "s+$RWMODE+$ROMODE+" $CMDLINE
       sync
       sync
