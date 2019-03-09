@@ -32,23 +32,51 @@
 
          var modal = document.getElementById('myModal');
          var btn = document.getElementById("myBtn");
-         
+
          // Get the <span> element that closes the modal
          var span = document.getElementsByClassName("close")[0];
-         
+
          doIt = function() {
             let color=document.getElementById("color").value;
             let label=document.getElementById("label").value;
             configure("/cgi-bin/configure.cgi", color, label);
          }
-         
-         // When the user clicks on <span> (x), close the modal
+
+         doPassword = function() {
+            let pass=document.getElementById("pass").value;
+            let pass2=document.getElementById("pass2").value;
+            if ( pass == pass2 ) {
+
+               configurePass("/cgi-bin/configurePassword.cgi", pass );
+            } else {
+               alert("Passwords to not match. Try again");
+            }
+         }
+          // When the user clicks on <span> (x), close the modal
          span.onclick = function() { modal.style.display = "none"; }
-         
+
          // When the user clicks anywhere outside of the modal, close it
          window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
 
-         function configure( url, color, label ) {
+         function configurePass( url, pass ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     data: {
+                        "pass": pass,
+                     },
+                     success: result => {
+                        modal.style.display = "block";
+                        let content="<h4><p style=color:#white>Password Changed to " + pass + "</p></h4>";
+                        document.getElementById("modal-body").innerHTML = content;
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       modal.style.display = "block";
+                       document.getElementById("modal-body").innerHTML = errorThrown;
+                     }
+                   });
+         }
+          function configure( url, color, label ) {
                    return $.ajax({
                      url: url,
                      type: 'GET',
@@ -69,7 +97,7 @@
                      }
                    });
          }
-         
+
          function fetch(field ) {
                    return $.ajax({
                      url: field,
@@ -82,7 +110,7 @@
                      }
                    });
          }
-         
+
          function fetchPeers(url ) {
                    return $.ajax({
                      url: url,
@@ -90,7 +118,8 @@
                      success: result => {
                         let hostPort=result.split("\n").map( hP => hP && `<li><a href="http://${hP.split('|')[0]}/setup/setup.html">${hP.split('|')[1]}</a>` );
                         if ( hostPort.length > 1 ) {
-                           document.getElementById('peers').innerHTML = 'Configure Peers' + hostPort.join('');
+                           document.getElementById('peersLabel').innerHTML = '<td><label>Configure Peers</label></td>' ;
+                           document.getElementById('peers').innerHTML = hostPort.join('');
                         }
                      },
                      error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -99,30 +128,55 @@
                    });
          }
           $(function() { fetch('label'); fetch('color'); fetchPeers('hosts.txt'); });
-            
+
       </script>
       <title>Thermometer Setup</title>
       <div style="background: rgba(247,247,247,0.6); width: 90%; text-align: left; margin: 0 auto">
          <form  method="post" enctype="text/plain">
             <center>
-            <table>
+            <table border=1>
                <tr>
                   <th colspan=2> Thermometer Setup </th>
                </tr>
-               <tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
                   <td><label>Graph Label</label></td>
                   <td><input id="label" name="label" type="text" /></td>
                </tr>
-               <tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
                   <td><label>Graph Color</label></td>
                   <td><input id="color" type="color" name="color"></td>
                </tr>
-               <tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
                   <th colspan=2>
                      <input type="button" value="Submit" onclick="doIt()"/>
                   </th>
                </tr>
+	       <tr>
+		       <th colspan=2> </th>
+	       </tr>
                <tr>
+                  <th colspan=2> Change Password </th>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
+                  <td style="text-align:right"><label>New Password</label></td>
+                  <td><input id="pass" name="pass" type="text" /></td>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
+                  <td style="text-align:right"><label>Type Again</label></td>
+                  <td><input id="pass2" name="pass2" type="text" /></td>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
+                  <th colspan=2>
+                     <input type="button" value="Submit" onclick="doPassword()"/>
+                  </th>
+               </tr>
+	       <tr>
+		  <th colspan=2> </th>
+	       </tr>
+               <tr>
+                  <th id="peersLabel" colspan=2 > </th>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.6)">
                   <td id="peers" colspan=2 style="text-align:left"> </td>
                </tr>
                <tr>
