@@ -26,27 +26,29 @@ parse_query()  #@ USAGE: parse_query var [var ...]
       esac
     done
     set +f
-}  
+}
 
-echo "Content-type: text/html"
+echo "Content-type: application/json"
 echo ""
 
-parse_query label color
+parse_query label color scale id
+#color=1
+#label=1;
+#scale="F"
 
-BASE="/var/tmp/readings/"
-ACCESS="$BASE/access.txt"
 
-# in seconds
-current=$(date +%s);
+[ ! -z "$label" ] && echo "$label" > /var/www/html/data/${id}.label
+[ ! -z "$color" ] && echo "$color" > /var/www/html/data/${id}.color
+[ ! -z "$scale" ] && echo "$scale" > /var/www/html/scale
 
-echo $current>$ACCESS
+  cat <<EOF
+      {
+      "id":"$id",
+      "label":"$label",
+      "color":"$color",
+      "scale":"$scale"
+      }
+EOF
 
-echo "$label" > /var/www/html/label
-echo "$color" > /var/www/html/color
-
-echo "<body>"
-echo "<div><h1>Color and Label changed</h1></div>"
-echo "<h4>Color: " $color " Label : " $label "</h4>"
-echo "</body>"
-
+exit
 
