@@ -1,0 +1,4 @@
+
+## nymea repo
+deb http://repository.nymea.io stretch main raspbian
+#deb-src http://repository.nymea.io stretch main raspbian

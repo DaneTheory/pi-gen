@@ -1,0 +1,4 @@
+8506b7a8d7d7d7da6cf2053cbb4510a2  lib/systemd/system/nymea-networkmanager.service
+b1c623dc45b024459fea47537c91b083  usr/bin/nymea-networkmanager
+9099e0914fc1279399f71752093a7735  usr/share/doc/nymea-networkmanager/changelog.gz
+4170612f76bcb19787bc46cead339bf5  usr/share/doc/nymea-networkmanager/copyright

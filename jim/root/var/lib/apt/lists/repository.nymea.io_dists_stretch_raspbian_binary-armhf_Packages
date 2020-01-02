@@ -1,0 +1,69 @@
+Package: libnymea-networkmanager
+Source: nymea-networkmanager
+Version: 0.3.2
+Architecture: armhf
+Maintainer: Simon Stürz <simon.stuerz@guh.io>
+Installed-Size: 230
+Depends: libqt5network5
+Priority: optional
+Section: libs
+Filename: pool/raspbian/n/nymea-networkmanager/libnymea-networkmanager_0.3.2_armhf.deb
+Size: 55910
+SHA256: f68c856b1fb06ff943dacbfaf3776e7c3fa3b806683b5db3329397e3a18f7203
+SHA1: f4befea40fd5b0bdc44515c324300a7a1b07ee75
+MD5sum: 9a19e940ad8fb177fd012daa93c710ac
+Description: Qt 5 based library for the network-manager DBus API.
+  Qt 5 based library for the network-manager DBus API.
+
+Package: libnymea-networkmanager-dbg
+Source: nymea-networkmanager
+Version: 0.3.2
+Architecture: armhf
+Maintainer: Simon Stürz <simon.stuerz@guh.io>
+Installed-Size: 3355
+Depends: libnymea-networkmanager (= 0.3.2)
+Priority: extra
+Section: debug
+Filename: pool/raspbian/n/nymea-networkmanager/libnymea-networkmanager-dbg_0.3.2_armhf.deb
+Size: 3316414
+SHA256: c13838f903a8a8b89584f5aeae7c031ffb8ebda812dcea371ab23bcf0ab61ee6
+SHA1: a35759d50c4c4485614ecd66a4329e63583b385e
+MD5sum: 0ed0b64dee167ebc9778d5b80839fa7e
+Description: Qt 5 based library for the network-manager DBus API - debug symbols
+  Debug Symbols for Qt 5 based network-manager DBus API.
+Build-Ids: 9587852fd44cb0c198800a1df5beccec9e62eb63
+
+Package: libnymea-networkmanager-dev
+Source: nymea-networkmanager
+Version: 0.3.2
+Architecture: armhf
+Maintainer: Simon Stürz <simon.stuerz@guh.io>
+Installed-Size: 49
+Depends: libnymea-networkmanager (= 0.3.2)
+Priority: optional
+Section: libdevel
+Filename: pool/raspbian/n/nymea-networkmanager/libnymea-networkmanager-dev_0.3.2_armhf.deb
+Size: 6114
+SHA256: 7aceb834a302bd97c4760e9bb45f75e370a7966ad87bed7969e7348e927f39ee
+SHA1: dcb8550665a384fbe53366184dc648c91e77e7d0
+MD5sum: c1f8bd89356f1d89297ea6c7198d633a
+Description: Qt 5 based library for the network-manager DBus API - development files
+  Development files for Qt 5 based network-manager DBus API.
+
+Package: nymea-networkmanager
+Version: 0.3.2
+Architecture: armhf
+Maintainer: Simon Stürz <simon.stuerz@guh.io>
+Installed-Size: 236
+Depends: init-system-helpers (>= 1.18~), libqt5network5, libqt5bluetooth5, network-manager, libnymea-networkmanager (= 0.3.2)
+Priority: optional
+Section: utils
+Filename: pool/raspbian/n/nymea-networkmanager/nymea-networkmanager_0.3.2_armhf.deb
+Size: 59590
+SHA256: dbdf4d788d1fe75e85b6803afa0224b5226f6c1dd4b8e54110ce268643de529c
+SHA1: b0abbf39ea8cd0efb203a958bd3d7923725a247e
+MD5sum: 66fd1c4d01ae616a9069889c39a18929
+Description: Daemon for wireless configuration using bluetooth LE.
+  This daemon allows to configure a wireless network using a bluetooth
+  low energy gatt server. The tool is written in Qt 5.
+

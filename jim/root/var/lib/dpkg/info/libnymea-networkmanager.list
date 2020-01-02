@@ -1,0 +1,12 @@
+/.
+/usr
+/usr/lib
+/usr/lib/arm-linux-gnueabihf
+/usr/lib/arm-linux-gnueabihf/libnymea-networkmanager.so.1.0.0
+/usr/share
+/usr/share/doc
+/usr/share/doc/libnymea-networkmanager
+/usr/share/doc/libnymea-networkmanager/changelog.gz
+/usr/share/doc/libnymea-networkmanager/copyright
+/usr/lib/arm-linux-gnueabihf/libnymea-networkmanager.so.1
+/usr/lib/arm-linux-gnueabihf/libnymea-networkmanager.so.1.0

@@ -1,0 +1,6 @@
+Package: *
+Pin: release c=raspbian
+Pin-Priority: 700
+Package: *
+Pin: origin repository.nymea.io c=main
+Pin-Priority: 500

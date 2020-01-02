@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+# Automatically added by dh_installdeb
+dpkg-maintscript-helper rm_conffile /etc/lighttpd/conf-available/10-access.conf 1.4.31-4 lighttpd -- "$@"
+# End automatically added section
+# Automatically added by dh_installinit
+if [ -x "/etc/init.d/lighttpd" ]; then
+	invoke-rc.d lighttpd stop || start_failed
+fi
+# End automatically added section
