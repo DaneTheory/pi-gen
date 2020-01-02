@@ -6,16 +6,19 @@ mkdir -p ${ROOTFS_DIR}/var/www/html/css
 mkdir -p ${ROOTFS_DIR}/var/www/html/js
 mkdir -p ${ROOTFS_DIR}/var/www/html/images
 mkdir -p ${ROOTFS_DIR}/var/www/html/setup
+mkdir -p ${ROOTFS_DIR}/var/www/html/data
 mkdir -p ${ROOTFS_DIR}/etc/lighttpd/.htpasswd
 
-install -v files/cgi-bin/configure.cgi          "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/configurePassword.cgi  "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/getCurrent.cgi         "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/getDayTemp.cgi         "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/readtemp-cron.sh       "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/urlDecode.sh           "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/checkUpdates.sh        "${ROOTFS_DIR}/usr/lib/cgi-bin/"
-install -v files/cgi-bin/checkLocalUpdates.sh   "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/getCurrent.cgi           "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/getDayTemp.cgi           "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/getSensorAttributes.cgi  "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/readtemp-cron.sh         "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/urlDecode.sh             "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/checkUpdates.sh          "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/checkLocalUpdates.sh     "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/state.cgi                "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/accesslog.cgi            "${ROOTFS_DIR}/usr/lib/cgi-bin/"
+install -v files/cgi-bin/checkip.cgi              "${ROOTFS_DIR}/usr/lib/cgi-bin/"
 
 install -v files/css/main.css                   "${ROOTFS_DIR}/var/www/html/css/"
 install -v files/css/setup.css                  "${ROOTFS_DIR}/var/www/html/css/"
@@ -33,7 +36,16 @@ install -v files/html/version                   "${ROOTFS_DIR}/var/www/html/"
 
 install -v files/html/setup.html                "${ROOTFS_DIR}/var/www/html/setup/"
 install -v files/html/hash.sh                   "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/configurePassword.cgi  "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/ssh.cgi                "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/clearNetwork.cgi       "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/resetData.cgi          "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/configure.cgi          "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/peers.cgi              "${ROOTFS_DIR}/var/www/html/setup/"
+install -v files/cgi-bin/parasitic.cgi          "${ROOTFS_DIR}/var/www/html/setup/"
+
 install -v files/lighttpd.conf                  "${ROOTFS_DIR}/etc/lighttpd/lighttpd.conf"
+install -v files/10-cgi.conf                    "${ROOTFS_DIR}/etc/lighttpd/conf-available/"
 install -v files/lighttpd-htdigest.user         "${ROOTFS_DIR}/etc/lighttpd/.htpasswd/lighttpd-htdigest.user"
 
 install -v files/rc.local                       "${ROOTFS_DIR}/etc/"
@@ -44,10 +56,6 @@ install -v files/nymea-networkmanager.sh        "${ROOTFS_DIR}/usr/bin/"
 
 if ! grep -q overlayRoot.sh ${ROOTFS_DIR}/boot/cmdline.txt; then
     sed -i 's/$/ init=\/sbin\/overlayRoot.sh/' ${ROOTFS_DIR}/boot/cmdline.txt
-fi
-
-if ! grep -q www-data ${ROOTFS_DIR}/etc/lighttpd/lighttpd.conf; then
-    sed -i 's/www-data/root/'  ${ROOTFS_DIR}/etc/lighttpd/lighttpd.conf
 fi
 
 sed -i 's/BT WLAN setup/RaspberryPi/' ${ROOTFS_DIR}/etc/nymea/nymea-networkmanager.conf

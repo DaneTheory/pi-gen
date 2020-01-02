@@ -17,11 +17,20 @@ if [ $status -eq 200 ]; then
 
       if [ $status -eq 200 ]; then
          tar xvzf $remotePackage
-	 sudo cp update.tar.gz update.sh /boot/config/
-         sudo cp /var/www/temperature-history.txt /boot/config/temperature-history.txt
-	 sync
-	 sync
-	 sudo reboot
+         status=$?
+
+         # if this file is bad
+         if [ $status -ne 0 ]; then
+            echo "$(date) Bad update file, deleting" >>/usr/lib/cgi-bin/updatelog.txt
+#            rm $remotePackage
+            exit 1;
+         fi
+
+         cp update.tar.gz update.sh /boot/config/
+         cp /var/www/temperature-history.txt /boot/config/temperature-history.txt
+         sync
+         sync
+         /sbin/reboot
       fi
    fi
 fi

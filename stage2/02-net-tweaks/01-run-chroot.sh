@@ -7,5 +7,5 @@ status=$?
 
 echo status is $status
 
-#systemctl disable dhcpcd5
+systemctl disable dhcpcd5
 

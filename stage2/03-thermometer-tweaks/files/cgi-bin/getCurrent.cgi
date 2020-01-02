@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Version 1.0 6/7/2018
+# Version 1.1 4/5/2019
 
 BASE="/var/tmp/readings/"
 ACCESS="$BASE/access.txt"
+SCALE=$(cat /var/www/html/scale)
 
 # in seconds
 current=$(date +%s);
@@ -21,11 +22,13 @@ last=$(cat $ACCESS)
 # put the data in a file based on the 'name' field
 getCurrentData()
 {
-   hosts=$(avahi-browse -t -p -k -r _http._tcp | grep -E '^=.*v4.*atureP'| cut -f 8-10 -d';' | tr ";" ":" | sort)
+   hosts=$(avahi-browse -t -p -k -r _http._tcp | grep -E '^=.*v4.*atureP'| cut -f 8-10 -d';' | tr ";" ":" | sort -u )
 
    scratch=$BASE/scratch/temp$$
 
    echo "">/var/www/html/hosts.txt
+
+   # for all of the records we received fromthe avahi browse command
    while read -r record; do
       hostPort=$(printf $record | cut -d":" -f 1,2)
       #url=$(printf "$record" | cut -d "\"" -f 2 | cut -d"=" -f 2)
@@ -33,29 +36,66 @@ getCurrentData()
 
       url=$(printf $record | cut -d "\"" -f 2)
       url=${url:4}
+ 
+      # start with empty array of potentiall remote sensor list
+      rsensors=();
+      extraArg="";
 
-      wget -q -O - http://$hostPort/$url > $scratch
-      status=$?
+      # Emulation of a do while loop
+      while
 
-      if [[ -s $scratch && $status -eq 0 ]]; then
-         probe=$(tail -1 $scratch | cut -d"," -f 4 )
+      # if we have a list of sensors
+      if [ ${#rsensors[@]} -gt 0 ]; then
+         extraArg="&sensor=${rsensors[0]}";
 
-         # if the probe is blank, the data is bad, skip
-         if [ -z "$probe" ]; then
-            rm $scratch
-            continue;
-         fi
+         # remove this entry
+         unset rsensors[0];
 
-         id=$(tail -1 $scratch | cut -d"," -f 5 )
-         if [ -z "$id" ]; then
-            filename="$probe"
-         else
-            filename="$id"
-         fi
-   
-         echo "$hostPort|$probe">>/var/www/html/hosts.txt
-         mv $scratch "$BASE/probes/$filename"
-      fi
+         # reset the array so next will always be [0]
+         rsensors=( "${rsensors[@]}" );
+      fi 
+
+       # fetch this url with a potential sensor specification
+       wget -q -O - http://$hostPort/${url}$extraArg > $scratch
+       status=$?
+
+       # if the wget returned data
+       if [[ -s $scratch && $status -eq 0 ]]; then
+
+          dataType=$(head -1 $scratch)
+
+          # if we got a return indicating that we need to specify whih sensor to get
+          # starts with * then has MULTIPLE somewhere following
+          if [[ $dataType  =~ ^\*.*MULTIPLE.*  ]]; then
+
+            rsensors=($(tail -n +2 $scratch ));
+
+          else
+
+             probe=$(tail -1 $scratch | cut -d"," -f 4 )
+
+             # if the probe is blank, the data is bad, skip
+             if [ -z "$probe" ]; then
+                rm $scratch
+                continue;
+             fi
+
+             id=$(tail -1 $scratch | cut -d"," -f 5 )
+             if [ -z "$id" ]; then
+                filename="$probe"
+             else
+                filename="$id"
+             fi
+
+             echo "$hostPort|$probe">>/var/www/html/hosts.txt
+             mv $scratch "$BASE/probes/$filename"
+          fi
+       fi
+       # this is the real check to terminte the loop - emulation of a do while loop
+        [ ${#rsensors[@]} -gt 0 ];
+       do
+          :
+       done
    done <<< "$hosts"
 
    # cleanup
@@ -64,6 +104,7 @@ getCurrentData()
    # clean up any files not acessed in the last 24 hours (24 * 60 );
    # this would likely be due to a probe that went away
    find $BASE/probes/ -mmin +1440 -type f -exec rm {} \;
+   rm -f /tmp/sort*
 }
 
 # if this isn't a cgi-executed execution
@@ -75,16 +116,26 @@ if [ -z ${QUERY_STRING} ]; then
       getCurrentData;
    fi
 
-   # if the color has been updated
-   if ! cmp -s /var/www/html/color /boot/config/color
-   then
-      cp /var/www/html/color /boot/config/color
-   fi
+   for probeName in $( cat /sys/bus/w1/devices/28*/name)
+   do
+ 
+      # if the color has been updated
+      if ! cmp -s /var/www/html/data/${probeName}.color /boot/config/data/${probeName}.color
+      then
+         cp /var/www/html/data/${probeName}.color /boot/config/
+      fi
 
-   # if the label has been updated
-   if ! cmp -s /var/www/html/label /boot/config/label
+      # if the label has been updated
+      if ! cmp -s /var/www/html/data/${probeName}.label /boot/config/${probeName}.label
+      then
+         cp /var/www/html/data/${probeName}.label /boot/config/
+      fi
+   done
+
+   # if scale has been updated
+   if ! cmp -s /var/www/html/scale /boot/config/scale
    then
-      cp /var/www/html/label /boot/config/label
+      cp /var/www/html/scale /boot/config/scale
    fi
 
    # kill any active getCurrent's that have been running longer that 45 seconds - hung?
@@ -111,7 +162,7 @@ dots="."
    debug="$dots</h2><h4>Load time "
 fi
 
-# we are a current user 
+# we are a current user
 echo $current>$ACCESS
 
 . /var/www/html/cgi-bin/urlDecode.sh
@@ -145,11 +196,11 @@ do
    if [[ ! $exclude =~ .*$probe.* ]]; then
 
       color=$(printf "$lastData" | awk -F',' '{ printf("%s", $3 ) }')
-      temperature=$(printf "$lastData" | awk -F',' '{ printf("%s", $2 ) }')
-      label=$(printf "%s : %2.2f°F"  "$probe" $temperature )
+      temperature=$(printf "$lastData" | awk -v SCALE=$SCALE -F',' '{ if ( SCALE =="C" ) printf("%s", ($2 - 32.0 ) * 0.55555555555 ); else  printf("%s", $2 ) }')
+      label=$(printf "%s: %2.2f°%c"  "$probe" $temperature $SCALE )
 
       printf ",\"excluded\":false,\"color\":\"$color\",\"label\": \"$label\",\"data\": ["
-      awk -v days=$days -v mil=$daysback -F',' '
+      awk -v SCALE=$SCALE -v days=$days -v mil=$daysback -F',' '
                 BEGIN { i=0; j=0 }
                 {
                    # if this date is in-range
@@ -161,7 +212,8 @@ do
                          if (i++>0) { printf(",");}
                       }
                       {
-                         printf("[%s,%s]", $1,$2 )
+                      if ( SCALE =="C" ) { printf("[%s,%s]\n", $1,($2 - 32.0 )  * 0.55555555555) }
+                      else { printf("[%s,%s]\n", $1,$2 ) }
                       }
                    }
                  }' $DIR/$file
@@ -174,4 +226,6 @@ do
 done
 IFS=$OIFS
 
-printf "{\"debug\": \"$debug $(($(date +%s)-current)) seconds for  $(cat /var/www/html/label)\"}]"
+printf "{\"debug\": \"$debug $(($(date +%s)-current)) seconds for $(cat /var/www/html/data/28$(cat /sys/bus/w1/devices/28*/name 2>/dev/null| head -1 | sed 's/^28//').label)\"}]"
+
+

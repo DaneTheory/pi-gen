@@ -162,7 +162,7 @@ export ENABLE_SSH="${ENABLE_SSH:-0}"
 
 export BASE_DIR
 
-export CLEAN
+export CLEAN=1
 export IMG_NAME
 export APT_PROXY
 

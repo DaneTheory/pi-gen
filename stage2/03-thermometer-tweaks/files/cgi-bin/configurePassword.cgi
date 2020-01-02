@@ -23,7 +23,8 @@ sudo mv /tmp/updateLocal.sh /boot/config/updateLocal.sh
 
 # note that these are only temporary since we have an overlay filesystem
 # the above script is meant to run at boot time to make permamnt.
-echo "$user:$realm:$hash" > /etc/lighttpd/.htpasswd/lighttpd-htdigest.user
+echo "$user:$realm:$hash" > /tmp/htdigest.user
+sudo /bin/mv /tmp/htdigest.user /etc/lighttpd/.htpasswd/lighttpd-htdigest.user
 echo "pi:$pass" | sudo /usr/sbin/chpasswd
 
 
@@ -31,3 +32,4 @@ echo "<body>"
 echo "<div><h1>Password changed</h1></div>"
 echo "</body>"
 
+~
