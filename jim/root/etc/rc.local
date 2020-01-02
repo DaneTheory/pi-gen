@@ -1,0 +1,164 @@
+#!/bin/sh
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+
+# Print the IP address
+_IP=$(hostname -I) || true
+if [ "$_IP" ]; then
+  printf "My IP address is %s\n" "$_IP"
+fi
+
+# disable htmi
+#/usr/bin/tvservice -o
+
+# Set the Pi Zero ACT LED trigger to 'none'.
+echo none | sudo tee /sys/class/leds/led0/trigger
+
+# Turn off the Pi Zero ACT LED.
+echo 1 | sudo tee /sys/class/leds/led0/brightness
+
+BASE=/var/tmp/readings/
+BOOTCONFIG=/boot/config/
+WWWDIR=/var/www/html/
+
+
+mkdir -p $BASE/tmp
+mkdir -p $BASE/probes
+mkdir -p $BASE/scratch
+
+touch $BASE/access.txt
+chmod a+rw $BASE/access.txt
+
+chmod -R a+rwx $BASE
+
+# allow python to bind to priv ports
+#setcap cap_net_bind_service=+ep /usr/bin/python2.7
+
+if [ ! -d $BOOTCONFIG ]; then
+   mkdir -p $BOOTCONFIG/network
+fi
+
+SENSORS=$( ls -d /sys/bus/w1/devices/28* 2>/dev/null )
+
+# after this loop all detected sensors will have txt, label and color entries in /boot/config
+for PROBENAME in $SENSORS
+do
+   PROBENAME=$(basename $PROBENAME)
+
+   # if we don't have a probe label, just use the the name with black color
+   if [ ! -f $BOOTCONFIG/$PROBENAME.label ]
+   then
+      echo $PROBENAME > $BOOTCONFIG/$PROBENAME.label
+      echo "#000000" >  $BOOTCONFIG/$PROBENAME.color
+   fi
+
+   # make sure it exists
+   touch $BOOTCONFIG/$PROBENAME.txt
+done
+
+SCALE="$BOOTCONFIG/scale"
+
+# if there are no sensors
+if [ -z "$SENSORS" ]; then
+
+   ID=$(cat /proc/cpuinfo | grep Serial | cut -d ' ' -f 2)
+   ID=$( echo $ID | tail -c 9 ) # use this for default id
+   COLOR=$( echo $ID | tail -c 7 ) # use this for default color
+
+   ONESENSOR="28"
+   echo $ID >  $BOOTCONFIG/$ONESENSOR.label
+   echo "#$COLOR" > $BOOTCONFIG/$ONESENSOR.color
+
+
+
+
+
+
+
+else
+   ONESENSOR=$(basename $(echo "$SENSORS" | head -1) )
+   ID=$(cat $BOOTCONFIG/28$(cat /sys/bus/w1/devices/28*/name 2>/dev/null | head -1 | sed 's/^28//').label)
+   ID=$(echo $ID | tr -cd '[:alnum:]')
+fi
+
+# if the old-style files are there, rename
+if [ -f $BOOTCONFIG/temperature-history.txt ]; then
+   mv $BOOTCONFIG/temperature-history.txt $BOOTCONFIG/$ONESENSOR.txt
+   mv $BOOTCONFIG/label $BOOTCONFIG/$ONESENSOR.label
+   mv $BOOTCONFIG/color $BOOTCONFIG/$ONESENSOR.color
+fi
+
+NAME=raspberryPi-$ID
+echo $NAME >/etc/hostname
+echo 127.0.0.1  $NAME >> /etc/hosts
+hostname $NAME
+
+if [ ! -f $SCALE ]; then
+   echo "F" > $SCALE
+fi
+
+cp $BOOTCONFIG/28*.txt $WWWDIR/data/
+cp $BOOTCONFIG/28*.label $WWWDIR/data/
+cp $BOOTCONFIG/28*.color $WWWDIR/data/
+cp $SCALE $WWWDIR/
+
+chmod a+rw  $WWWDIR/data/28*.color
+chmod a+rw  $WWWDIR/data/28*.label
+chmod a+rw  $WWWDIR/data/28*.txt
+chmod a+rw  $WWWDIR/scale
+chmod a+rwx $WWWDIR/data/
+
+UP="$BOOTCONFIG/update.sh"
+LUP="$BOOTCONFIG/updateLocal.sh"
+CMDLINE="/boot/cmdline.txt"
+ROMODE="init=/sbin/overlayRoot.sh"
+RWMODE="init=/sbin/init"
+
+grep $ROMODE $CMDLINE >/dev/null 2>&1
+
+if [ $? -eq 0 ]; then # we are in ro mode
+   if [ -f "$UP" ]; then
+      echo "Found $UP, rebooting to do the update"
+      sed -i "s+$ROMODE+$RWMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+   if [ -f "$LUP" ]; then
+      echo "Found $LUP, rebooting to do the update"
+      sed -i "s+$ROMODE+$RWMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+else # we are in rw mode
+   if [ -f "$UP" ]; then
+      echo "Found $UP, execute it"
+      sh $UP >$BOOTCONFIG/update.log 2>&1
+      mv $UP $UP.executed
+      sed -i "s+$RWMODE+$ROMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+   if [ -f "$LUP" ]; then
+      echo "Found $LUP, execute it"
+      sh $LUP >$BOOTCONFIG/updateLocal.log 2>&1
+      mv $LUP $LUP.executed
+      sed -i "s+$RWMODE+$ROMODE+" $CMDLINE
+      sync
+      sync
+      /sbin/reboot
+   fi
+fi
+
+exit 0

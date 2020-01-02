@@ -1,0 +1,7 @@
+f40d3f447df91765d56f495b85ff30f2  lib/systemd/system/bthelper@.service
+24dd0a56e7831cd2e5d32222a6c9b0f6  lib/systemd/system/hciuart.service
+d8020d349ff4327e214fd06de2551ea6  lib/udev/rules.d/90-pi-bluetooth.rules
+2829252f902ec19116526bad96dd9796  usr/bin/bthelper
+aca844ed1cfc5d385410c966109bd9e4  usr/bin/btuart
+cae09a0a6a6db49802b9ca37d9447b7b  usr/share/doc/pi-bluetooth/changelog.gz
+6af8de3c8ee71f8e91e9b22f84ff2022  usr/share/doc/pi-bluetooth/copyright

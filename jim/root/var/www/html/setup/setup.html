@@ -1,0 +1,392 @@
+<head>
+<title>Temperature probe</title>
+
+<script src="js/jquery-1.8.3.min.js"></script>
+
+<script>
+  function loadDoc( state, show ) {
+    var tag="on"
+    if ( show ) {
+       modal.style.display = "block";
+       let content="<h2 align=center>Please wait...</h4>";
+       document.getElementById("modal-body").style.backgroundColor = "#f2b0ae";
+       document.getElementById("modal-body").innerHTML = content;
+    }
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 ) modal.style.display = "none";
+      if (this.readyState == 4 && this.status == 200) {
+
+        if ( this.responseText.trim() == "enabled" ) { tag="off" } else tag="on";
+        document.getElementById("sshid").innerHTML = "Turn ssh " + tag;
+        document.getElementById("sshid").setAttribute('href', 'javascript:loadDoc("' + tag + '",1);');
+      }
+    };
+    xhttp.open("GET", "/setup/ssh.cgi?state="+state, true);
+    xhttp.send();
+  }
+
+  function loadParaDoc( state, show ) {
+    var tag="on"
+    if ( show ) {
+       modal.style.display = "block";
+       let content="<h2 align=center>Please wait...</h4>";
+       document.getElementById("modal-body").style.backgroundColor = "#f2b0ae";
+       document.getElementById("modal-body").innerHTML = content;
+    }
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+      if (this.readyState == 4 ) modal.style.display = "none";
+      if (this.readyState == 4 && this.status == 200) {
+
+        if ( this.responseText.trim() == "on" ) { tag="off" } else { tag="on" };
+        document.getElementById("para").innerHTML = "Turn Parasitic mode " + tag;
+        document.getElementById("para").setAttribute('href', 'javascript:loadParaDoc("' + tag + '",1);');
+      }
+    };
+    xhttp.open("GET", "/setup/parasitic.cgi?state="+state, true);
+    xhttp.send();
+  }
+
+  $(document).ready(function() {
+     loadDoc('status',0);
+  });
+
+</script>
+</head>
+
+<!DOCTYPE html>
+<html class="full" lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name=viewport content="width=device-width, initial-scale=1" />
+      <link rel="stylesheet" href="css/main.css">
+      <link rel="stylesheet" href="css/setup.css">
+      <script src="js/jquery-1.8.3.min.js"></script>
+      <title>Thermometer Setup</title>
+   </head>
+   <body>
+
+      <div id="myModal" class="modal">
+         <div class="modal-content">
+            <div id="header" class="modal-header">
+               <span class="close">&times;</span>
+               &nbsp
+            </div>
+            <div id="modal-body" class="modal-body">
+            </div>
+            <div id="footer" class="modal-footer">
+               <h3></h3>
+            </div>
+         </div>
+      </div>
+      <script type="text/javascript">
+
+         function ReverseDisplay(d) {
+            if (document.getElementById(d).style.display == "none") {
+               document.getElementById(d).style.display = "table-cell";
+            }
+            else {
+                document.getElementById(d).style.display = "none";
+            }
+         }
+
+         Array.prototype.removeDuplicates = function () {
+             return this.filter(function (item, index, self) {
+                 return self.indexOf(item) == index;
+             });
+         };
+
+         var modal = document.getElementById('myModal');
+         var btn = document.getElementById("myBtn");
+
+         // Get the <span> element that closes the modal
+         var span = document.getElementsByClassName("close")[0];
+
+         doPassword = function() {
+            let pass=document.getElementById("pass").value;
+            let pass2=document.getElementById("pass2").value;
+            if ( pass == pass2 ) {
+
+               if ( pass.length > 5 ) {
+                  configurePass("/setup/configurePassword.cgi", pass );
+               } else {
+               alert("Passwords must be at least 5 characters");
+               }
+            } else {
+               alert("Passwords do not match. Try again");
+            }
+         }
+          // When the user clicks on <span> (x), close the modal
+         span.onclick = function() { modal.style.display = "none"; }
+
+         // When the user clicks anywhere outside of the modal, close it
+         window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } }
+        doIt = function() {
+            let scale=document.querySelector('input[name="scale"]:checked').value;
+            configure("/setup/configure.cgi", null, null, scale, null);
+         }
+
+
+
+         function configurePass( url, pass ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     data: {
+                        "pass": pass,
+                     },
+                     success: result => {
+                        modal.style.display = "block";
+                        document.getElementById("modal-body").style.backgroundColor = "#f2b0ae";
+                        let content="<h4><p style=color:#white>Password Changed to " + pass + "</p></h4>";
+                        document.getElementById("modal-body").innerHTML = content;
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       modal.style.display = "block";
+                       document.getElementById("modal-body").innerHTML = errorThrown;
+                     }
+                   });
+         }
+
+          function configure( url, color, label, scale, id ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     data: {
+                        "color": color,
+                        "label": label,
+                        "scale": scale,
+                        "id": id
+                     },
+                     success: result => {
+                        modal.style.display = "block";
+                        if ( result.label.length > 0  ){
+                           let complement = (0xffffff ^ ( parseInt( result.color.slice(1), 16 ))).toString(16);
+                           document.getElementById("modal-body").style.backgroundColor = result.color;
+                           content="<h4><p style=color:#" + complement + ">Graph Color:<br>Graph Label: <i>" +result.label+ "</i></p></h4>";
+                        }
+                        else {
+                           document.getElementById("modal-body").style.backgroundColor = "#f2b0ae";
+                           content="<h4><p style=color:#02000e> Graph Scale: <i>" + ((result.scale == 'F' ) ? "Fahrenheit" : "Celsius") + "</i></p></h4>";
+                        }
+
+                        document.getElementById("modal-body").innerHTML = content;
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       modal.style.display = "block";
+                       document.getElementById("modal-body").innerHTML = errorThrown;
+                     }
+                   });
+         }
+
+         function fetch(field ) {
+                   return $.ajax({
+                     url: field,
+                     type: 'GET',
+                     success: result => {
+                        result=result.replace(/^\s+|\s+$/g, '');
+                        if ( document.getElementById(field) ) document.getElementById(field).value = result;
+                        if ( document.getElementById(result)) document.getElementById(result).checked = true;
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+                   });
+         }
+
+         function fetchPeers(url ) {
+                   return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     success: result => {
+                        let hostPort=result.split("\n").map( hP => hP && `<li><a href="http://${hP.split('|')[0]}/setup/setup.html">${hP.split('|')[1]}</a></li>` );
+                        if ( hostPort.length > 1 ) {
+                           document.getElementById('peersLabel').innerHTML = '<td><label>Configure Peers</label></td>' ;
+                           document.getElementById('peers').innerHTML = hostPort.join('');
+                        }
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+                   });
+         }
+         function newSensorRow() {
+            var row = document.createElement('tr');
+            row.style.background="rgba(255,180,180,0.4)"
+            return row;
+         }
+
+         function newSensorLabel( label ) {
+            l = document.createElement('label');
+            l.innerHTML=label;
+            return l;
+         }
+
+         function tdLabel( label ) {
+            var cell = document.createElement('td');
+            cell.appendChild( newSensorLabel( label ) );
+            return cell;
+         }
+
+         function tInput( cellType, type, value, id, span, clickHandler ) {
+            cell = document.createElement(cellType);
+            cell.colSpan=span;
+            input = document.createElement("input");
+            input.type=type;
+            input.defaultValue=value;
+            input.id = type + id;
+            if ( clickHandler){ input.id=id; input.addEventListener ( "click", clickHandler );}
+            cell.appendChild( input );
+            return cell;
+         }
+
+         function clickHandler( ev ) {
+            let color = document.getElementById( 'color'+ev.target.id ).value;
+            let label = document.getElementById( 'text'+ev.target.id ).value;
+            configure( "/setup/configure.cgi", color, label, null, ev.target.id ) 
+            ev.preventDefault();
+            return false;
+         }
+
+         function fetchSensors(url ) {
+            return $.ajax({
+                     url: url,
+                     type: 'GET',
+                     success: result => {
+        if ( result.parasitic ) { tag="off" } else tag="on";
+        document.getElementById("para").innerHTML = "Turn Parasitic mode " + tag;
+        document.getElementById("para").setAttribute('href', 'javascript:loadParaDoc("' + tag + '",1);');
+                        $.each( result.sensors, function(index, element) {
+
+                                 var sensorElement = document.getElementById('sensorContent');
+
+                                 var row = newSensorRow();
+                                 row.appendChild( tdLabel( "Sensor Label" ) );
+				 row.appendChild( tInput( 'td', "text",  element.label, element.id, 1, null ) );
+				 sensorElement.parentNode.insertBefore( row, sensorElement );
+
+                                 row = newSensorRow();
+                                 row.appendChild( tdLabel( "Sensor Color" ) );
+				 row.appendChild( tInput( 'td', "color",  element.color, element.id, 1, null ) );
+				 sensorElement.parentNode.insertBefore(row, sensorElement );
+
+                                 row = newSensorRow();
+				 row.appendChild( tInput( 'th', "button",  "Submit", element.id, 2, clickHandler ) );
+				 sensorElement.parentNode.insertBefore(row, sensorElement );
+                        });
+                     },
+                     error: function(XMLHttpRequest, textStatus, errorThrown) {
+                       console.log( errorThrown  );
+                     }
+            });
+         }
+
+         $(function() { fetch('scale'); fetchPeers('hosts.txt'); fetchSensors('/cgi-bin/getSensorAttributes.sh') });
+
+      </script>
+
+      <title>Thermometer Setup</title>
+      <div style="background: rgba(247,247,247,0.4); width: 90%; text-align: left; margin: 0 auto">
+         <form  method="post" enctype="text/plain">
+            <center>
+            <table border=1>
+               <tr>
+                  <th colspan=2> Thermometer Setup </th>
+               </tr>
+               <tr id='sensorContent'/>
+
+<!--
+        <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td><label>Graph Label</label></td>
+                  <td><input id="label" name="label" type="text" /></td>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td><label>Graph Color</label></td>
+                  <td><input id="color" type="color" name="color"></td>
+               </tr>
+-->
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td><label>Graph Scale</label></td>
+                  <td colspan=2 align="left">
+                     <form action="">
+                       <input type="radio" name="scale" id="F" value="F" checked="checked">Fahrenheit<br>
+                       <input type="radio" name="scale" id="C" value="C">Celsius
+                     </form>
+                  </td>
+               </tr>
+
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <th colspan=2>
+                     <input type="button" value="Submit" onclick="doIt()"/>
+                  </th>
+               </tr>
+	       <tr>
+		  <th colspan=2> </th>
+	       </tr>
+               <tr>
+                  <th colspan=2> Change Password </th>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td style="text-align:right"><label>New Password</label></td>
+                  <td><input id="pass" name="pass" type="text" /></td>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td style="text-align:right"><label>Type Again</label></td>
+                  <td><input id="pass2" name="pass2" type="text" /></td>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <th colspan=2>
+                     <input type="button" value="Submit" onclick="doPassword()"/>
+                  </th>
+               </tr>
+	       <tr>
+		  <th colspan=2> </th>
+	       </tr>
+               <tr>
+                  <th id="peersLabel" colspan=2 > </th>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td id="peers" colspan=2 style="text-align:left"> </td>
+               </tr>
+               <tr style="background-color:rgba(255,180,180,0.4)">
+                  <td colspan=2 style="text-align:center">
+                     <input type="button" value="Advanced" onclick="ReverseDisplay('advancedOptions')"/>
+                     <div id="advancedOptions" style="text-align:left;display:none;">
+                        <ul>
+                           <li><a href="/setup/resetData.cgi">Clear all temperature data</a></li>
+                           <li><a href="/setup/clearNetwork.cgi">Clear network credentials</a></li>
+                           <li><a href="/cgi-bin/accesslog.cgi">Remote Access Log</a></li>
+                           <li><a href="/setup/peers.cgi">Peer Status</a></li>
+                           <li><a id="sshid" href=""</a></li>
+                           <li><a id="para" href=""</a></li>
+                        </ul>
+                     </div>
+                  </td>
+               </tr>
+               <tr>
+                  <td colspan=2 style="text-align:center">
+                     <br>
+                     <a href="javascript:history.back()">Back</a>
+                  </td>
+               </tr>
+            </table>
+         </form>
+
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+         <br>
+      </div>
+   </body>
+</html>
+
+

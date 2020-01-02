@@ -1,0 +1,9 @@
+41b3a906bdaafe247ac16e76f4785807  usr/lib/arm-linux-gnueabihf/libQt5Network.so.5.7.1
+4ece6f56429354167c7e9b7a90578bca  usr/lib/arm-linux-gnueabihf/qt5/plugins/bearer/libqconnmanbearer.so
+00150cc6c8c7a46886d57fb74c3e7b2d  usr/lib/arm-linux-gnueabihf/qt5/plugins/bearer/libqgenericbearer.so
+28495654cc614c7ea5416a43f153a18f  usr/lib/arm-linux-gnueabihf/qt5/plugins/bearer/libqnmbearer.so
+9625233da42f9e0ce9d63651a9d97654  usr/share/doc/libqt5network5/LGPL_EXCEPTION.txt
+bca5443d99451ea55da59f98dce2a5f2  usr/share/doc/libqt5network5/changelog.Debian.gz
+e6bd0383a1fc0a54944feb6ccd4d6303  usr/share/doc/libqt5network5/changelog.gz
+8d22369506371ea17c6c6f2edbbad55c  usr/share/doc/libqt5network5/copyright
+72f59c5e48ce4c57ed4654a566109ef8  usr/share/lintian/overrides/libqt5network5
