@@ -1,9 +1,0 @@
-#!/bin/sh
-
-set -e
-
-if [ "$1" != "upgrade" ]; then
-	update-alternatives --remove dhcpcd /sbin/dhcpcd5
-fi
-
-
