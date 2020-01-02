@@ -1,5 +1,0 @@
-* * * * * /var/www/html/cgi-bin/getCurrent.cgi
-* * * * * /var/www/html/cgi-bin/readtemp-cron.sh
-0 * * * * /var/www/html/cgi-bin/checkUpdates.sh
-0 3 * * * /var/www/html/cgi-bin/checkLocalUpdates.sh
-*/5 * * * * cp /var/www/data/28* /boot/config/
